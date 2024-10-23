@@ -17,7 +17,7 @@
             <div class="grid__column-2">
                 <nav class="category">
                     <h3 class="category__heading">
-                        <i class="category__heading-icon fa-solid fa-list"></i> Danh mục
+                        <i class="category__heading-icon fa-solid fa-list"></i>Danh mục
                     </h3>
                     <ul class="category-list">
 
@@ -33,7 +33,7 @@
             </div>
             <div class="grid__column-10">
                 <div class="home-filter">
-                    <span class="home-filter__label">Sắp xếp </span>
+                    <span class="home-filter__label">Sắp xếp theo</span>
                     <a href="@Url.Action("Index","Home",new {sort = "new" })" class="home-filter__btn btn @*btn--primary*@">Mới nhất</a>
                     <a href="@Url.Action("Index","Home",new {sort = "hot" })" class="home-filter__btn btn">Bán chạy</a>
                     <a href="@Url.Action("Index","Home",new {sort = "selling" })" class="home-filter__btn btn">Còn hàng</a>
@@ -44,10 +44,10 @@
                         <i class="fa-solid fa-caret-down"></i>
                         <ul class="select-input__list">
                             <li class="select-input__item">
-                                <a href="@Url.Action("Index","Home",new { sort = "asc" })" class="select-input__link">Giá: thấp đến cao</a>
+                                <a href="@Url.Action("Index","Home",new { sort = "asc" })" class="select-input__link">Giá: Thấp đến cao</a>
                             </li>
                             <li class="select-input__item">
-                                <a href="@Url.Action("Index","Home",new { sort = "desc" })" class="select-input__link">Giá: cao đến thấp</a>
+                                <a href="@Url.Action("Index","Home",new { sort = "desc" })" class="select-input__link">Giá: Cao đến thấp</a>
                             </li>
                         </ul>
                     </div>
