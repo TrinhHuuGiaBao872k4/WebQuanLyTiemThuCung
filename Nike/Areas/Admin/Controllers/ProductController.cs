@@ -133,7 +133,7 @@ namespace Nike.Areas.Admin.Controllers
                 {
                     string pic = System.IO.Path.GetFileName(file.FileName);
                     String path = System.IO.Path.Combine(
-                                           Server.MapPath("~/Hinh"), pic);
+                                           Server.MapPath("~/Hinh/"), pic);
                     file.SaveAs(path);
                     anh = pic;
                     using (MemoryStream ms = new MemoryStream())
@@ -167,28 +167,36 @@ namespace Nike.Areas.Admin.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
+
             Product product = _db.Products.Find(id);
             if (product == null)
             {
                 return HttpNotFound();
             }
+
             return View(product);
         }
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int Id)
+        public ActionResult Delete(int id)
         {
             try
             {
-                Product product = _db.Products.Find(Id);
-                _db.Products.Remove(product);
-                _db.SaveChanges();
+                Product product = _db.Products.Find(id);
+                if (product != null)
+                {
+                    _db.Products.Remove(product);
+                    _db.SaveChanges();
+                }
             }
-            catch
+            catch (Exception ex)
             {
-
+                // Ghi log lỗi hoặc xử lý ngoại lệ nếu cần
+                Console.WriteLine("Error deleting product: " + ex.Message);
+                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Unable to delete product");
             }
+
             return RedirectToAction("Index");
         }
 
