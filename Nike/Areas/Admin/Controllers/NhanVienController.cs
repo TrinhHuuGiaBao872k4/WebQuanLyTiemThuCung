@@ -16,16 +16,16 @@ namespace Nike.Areas.Admin.Controllers
         private QuanLySanPhamEntities _db = new QuanLySanPhamEntities();
         // GET: Admin/NhanVien
 
-        // Hiển thị giao diện Admin - Thắng
+        // Hiển thị giao diện Admin 
         public ActionResult Index(string searchString)
         {
             NhanVien nv = (NhanVien)Session["NV"];
-            if (nv.MaChucVu == 1)
+            if (nv.MaChucVu == 2)
             {
                 return RedirectToAction("Index", "Home");
             }
             var dsNhanVien = (from s in _db.NhanViens select s).ToList();
-            // Tìm kiếm nhân viên trong quản lí nhân viên - Thịnh 
+            // Tìm kiếm nhân viên trong quản lí nhân viên 
             if (!String.IsNullOrEmpty(searchString))
             {
                 searchString = searchString.ToLower();
@@ -37,7 +37,7 @@ namespace Nike.Areas.Admin.Controllers
             }
             return View();
         }
-        // Thêm nhân viên mới - Nhân
+        // Thêm nhân viên mới
         public ActionResult Create()
         {
             ViewBag.MaChucVu = new SelectList(_db.ChucVus, "MaChucVu", "ChucVu1");
@@ -72,7 +72,7 @@ namespace Nike.Areas.Admin.Controllers
             return View(nhanvien); // nếu không thể tạo mới thì trả về View như cũ
         }
 
-        // Sửa thông tin nhân viên - Nhân
+        // Sửa thông tin nhân viên
         public ActionResult Edit(int id)
         {
             if (id.ToString() == null)
@@ -134,7 +134,7 @@ namespace Nike.Areas.Admin.Controllers
             return View(nv);
 
         }
-        //Xóa nhân viên - Duy
+        //Xóa nhân viên
         public ActionResult Delete(int? id)
         {
             if (id == null)
@@ -159,7 +159,7 @@ namespace Nike.Areas.Admin.Controllers
         }
 
 
-        // Xem chi tiết Nhân viên- Nhân
+        // Xem chi tiết Nhân viên
         public ActionResult Detail(int? id)
         {
             if (id == null)

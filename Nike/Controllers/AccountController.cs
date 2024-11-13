@@ -77,7 +77,7 @@ namespace Nike.Controllers
             Session.Clear();
             return RedirectToAction("Index", "Home");
         }
-        //Duy - code
+        
         public ActionResult ProFile()
         {
             KhachHang kh = (KhachHang)Session["Taikhoan"];
@@ -89,7 +89,7 @@ namespace Nike.Controllers
             }
             return HttpNotFound();
         }
-        //hoàng - code
+        
 
         public ActionResult EditProFile(int idUser)
         {
@@ -233,7 +233,7 @@ namespace Nike.Controllers
             }
             return View(kh);
         }
-        //Hủy đơn hàng của Thắng
+        //Hủy đơn hàng 
         public ActionResult CancelOrder(int ID)
         {
             var orderList = (from s in _db.Orders select s).ToList();

@@ -1,8 +1,11 @@
-﻿@model Nike.Models.Product
+﻿@using Nike.Models;
+@model Nike.Models.Product
 
 @{
+    QuanLySanPhamEntities _db = new QuanLySanPhamEntities();
     ViewBag.Title = "Sửa sản phẩm";
     Layout = "~/Areas/Admin/Views/Shared/_layoutadmin.cshtml";
+    Product product = _db.Products.Find(Model.Id);
 }
 
 @using (Html.BeginForm("Edit", "Product", FormMethod.Post,
@@ -19,7 +22,7 @@
                 <div class="tile">
                     <h3 class="tile-title">Chỉnh sửa sản phẩm</h3>
                     <div class="tile-body">
-                      
+
                         <div class="row">
                             <div class="form-group col-md-3">
                                 <label class="control-label">Mã sản phẩm </label>
@@ -83,11 +86,27 @@
                         </div>
 
                     </div>
-                    <input type="submit" value="Chỉnh sửa thông tin khóa học" class="btn btn-save" />
+                    <input type="submit" value="Chỉnh sửa thông tin sản phẩm" class="btn btn-save" />
                     <a class="btn btn-cancel" href="@Url.Action("Index","Product")">Hủy bỏ</a>
+                    <input class="btn btn-warning" id="Delete" type="submit" value="Xóa sản phẩm" onclick="deleteProduct()">
+
                 </div>
             </div>
         </div>
     </div>
 }
+<script type="text/javascript">
+        function deleteProduct() {
+            $.ajax({
+                url: "@(Url.Action("Delete", "Product", new { Id = product.Id }))",
+                type: "GET",
+                success: function (data) {
+                    window.location.href = "/Admin/Product"
+                }
+            });
+
+        }
+    }
+
+</script>
 

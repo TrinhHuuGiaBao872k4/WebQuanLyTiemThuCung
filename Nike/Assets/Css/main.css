@@ -1,6 +1,6 @@
 .header {
     height: var(--header-height);
-    background-image: linear-gradient(0, #335959, #316565);
+    background-image: linear-gradient(135deg, #FFEB99, #FFB347);
 }
 
 .navbar {
