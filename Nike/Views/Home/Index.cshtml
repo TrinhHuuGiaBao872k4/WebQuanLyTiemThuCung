@@ -9,28 +9,122 @@
     var currentSearch = ViewBag.searchStr;
     var currentPage = ViewBag.currentPage;
 }
+<style>
+    .category {
+    position: relative;
+}
 
+.category__heading {
+    font-size: 18px;
+    font-weight: bold;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.category-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.category-item {
+    position: relative;
+}
+
+.category-item__link {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    text-decoration: none;
+    color: #333;
+}
+
+.category-item__link i {
+    margin-right: 8px;
+    font-size: 20px;
+}
+
+.sub-category-list {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 100%;
+    list-style-type: none;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    width: 200px;
+    z-index: 100;
+}
+
+.category-item:hover .sub-category-list {
+    display: block;
+}
+
+.sub-category-item__link {
+    text-decoration: none;
+    color: #333;
+    padding: 5px 10px;
+    display: block;
+}
+.sub-category-item__link:hover {
+    background-color: #f4f4f4;
+}
+    .header-main {
+        padding-bottom: 0;
+        padding: 0 0 10px;
+    }
+    .main-menu {
+        display: flex;
+        justify-content: space-between;
+        margin: 0 -10px 0;
+        padding-left:10px;
+    }
+
+</style>
 @Html.Hidden("sort")
 <div class="app__container">
     <div class="grid">
-        <div class="grid__row app__content">
-            <div class="grid__column-2">
-                <nav class="category">
+        <div class="grid__row app__content center">
+            @*<div class="grid__column-2">
+            <div class="category">
+                <h3 class="category__heading">
+                    <i class="category__heading-icon fa-solid fa-list"></i>Danh mục
+                </h3>
+                <ul class="category-list">
+
+                    @foreach (var item in ViewBag.catalogs)
+                    {
+                        <li class="category-item" id="ctg">
+                            <a href="@Url.Action("Index","Home", new {sort = @item.CatalogName})" class="category-item__link">@item.CatalogName</a>
+                        </li>
+
+                    }
+                </ul>
+            </div>
+        </div>*@
+
+            <div class="header-main">
+                <div class="">
                     <h3 class="category__heading">
-                        <i class="category__heading-icon fa-solid fa-list"></i>Danh mục
+                        <i class="category__heading-icon fa-solid fa-list"></i>Danh mục sản phẩm
                     </h3>
-                    <ul class="category-list">
+                    <ul class="main-menu">
 
                         @foreach (var item in ViewBag.catalogs)
                         {
-                            <li class="category-item" id="ctg">
-                                <a href="@Url.Action("Index","Home", new {sort = @item.CatalogName})" class="category-item__link">@item.CatalogName</a>
-                            </li>
-
+                            
+                                <a href="@Url.Action("Index", "Home", new { sort = @item.CatalogName })" class="category-item__link">
+                                    <i class="fa-solid fa-bone"></i> <!-- Biểu tượng cho danh mục -->
+                                    @item.CatalogName
+                                </a>
+                            
                         }
                     </ul>
-                </nav>
+                </div>
             </div>
+
+
             <div class="grid__column-10">
                 <div class="home-filter">
                     <span class="home-filter__label">Sắp xếp theo</span>
@@ -88,7 +182,7 @@
                 <div class="home-product">
                     <div class="grid__row">
                         <!-- product-item -->
-               
+
                         @foreach (var item in data)
                         {
                             <div class="grid__column-2-4">
@@ -115,8 +209,8 @@
                                     <div class="home-product__item-action">
 
                                         @*<div class="home-product__item-rate">
-                                            <span style="color: var(--primary-color); border: 1px solid var(--primary-color)"></span>
-                                        </div>*@
+                                        <span style="color: var(--primary-color); border: 1px solid var(--primary-color)"></span>
+                                    </div>*@
 
                                         <span class="home-product__item-sold">@item.ProductSold đã bán</span>
                                     </div>
@@ -144,65 +238,66 @@
                         }
                     </div>
                 </div>
-                @if (currentPage <= totalPage) {
-                <ul class="pagination home-product__pagination">
-                    @if (currentPage != 1)
-                    {
-                        <li class="pagination-item">
-                            <a href="@Url.Action("Index","Home",new {sort= currentSort ,pageIndex = 1})" class="pagination-item__link">
-                                <i class="pagination-item__icon fas fa-angle-left"></i>
-                            </a>
-                        </li>
-                    }
-
-
-
-                    @for (int i = currentPage; i <= (totalPage + currentPage) / 2; i++)
-                    {
-                        if (currentPage == totalPage)
-                        {
-                            break;
-                        }
-                        if (String.IsNullOrEmpty(currentSort))
+                @if (currentPage <= totalPage)
+                {
+                    <ul class="pagination home-product__pagination">
+                        @if (currentPage != 1)
                         {
                             <li class="pagination-item">
-                                <a href="@Url.Action("Index","Home",new {searchStr = currentSearch, pageIndex = i })" class="pagination-item__link">
-                                    @i
+                                <a href="@Url.Action("Index","Home",new {sort= currentSort ,pageIndex = 1})" class="pagination-item__link">
+                                    <i class="pagination-item__icon fas fa-angle-left"></i>
                                 </a>
                             </li>
                         }
-                        else
+
+
+
+                        @for (int i = currentPage; i <= (totalPage + currentPage) / 2; i++)
+                        {
+                            if (currentPage == totalPage)
+                            {
+                                break;
+                            }
+                            if (String.IsNullOrEmpty(currentSort))
+                            {
+                                <li class="pagination-item">
+                                    <a href="@Url.Action("Index","Home",new {searchStr = currentSearch, pageIndex = i })" class="pagination-item__link">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="pagination-item">
+                                    <a href="@Url.Action("Index","Home",new {sort= currentSort ,pageIndex = i })" class="pagination-item__link">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+                        }
+                        @if (totalPage > 5)
                         {
                             <li class="pagination-item">
-                                <a href="@Url.Action("Index","Home",new {sort= currentSort ,pageIndex = i })" class="pagination-item__link">
-                                    @i
+                                <a href="#" class="pagination-item__link">...</a>
+                            </li>
+                        }
+
+                        <li class="pagination-item">
+                            <a href="@Url.Action("Index","Home",new {sort= currentSort ,pageIndex = totalPage })" class="pagination-item__link">
+                                @totalPage
+                            </a>
+                        </li>
+
+
+                        @if (currentPage != totalPage)
+                        {
+                            <li class="pagination-item">
+                                <a href="@Url.Action("Index","Home",new {sort= currentSort, pageIndex = totalPage })" class="pagination-item__link">
+                                    <i class="pagination-item__icon fas fa-angle-right"></i>
                                 </a>
                             </li>
                         }
-                    }
-                    @if (totalPage > 5)
-                    {
-                        <li class="pagination-item">
-                            <a href="#" class="pagination-item__link">...</a>
-                        </li>
-                    }
-
-                    <li class="pagination-item">
-                        <a href="@Url.Action("Index","Home",new {sort= currentSort ,pageIndex = totalPage })" class="pagination-item__link">
-                            @totalPage
-                        </a>
-                    </li>
-
-
-                    @if (currentPage != totalPage)
-                    {
-                        <li class="pagination-item">
-                            <a href="@Url.Action("Index","Home",new {sort= currentSort, pageIndex = totalPage })" class="pagination-item__link">
-                                <i class="pagination-item__icon fas fa-angle-right"></i>
-                            </a>
-                        </li>
-                    }
-                </ul>
+                    </ul>
                 }
 
 

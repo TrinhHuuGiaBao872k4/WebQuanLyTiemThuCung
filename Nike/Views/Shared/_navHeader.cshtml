@@ -14,13 +14,12 @@
                        select s).ToList();
     }
     else { kh = null; }
-
 }
-<header class="header">
+<header class="" style="background-color: #FFB347">
     <div class="grid">
-        <nav class="navbar">
+        <nav class="navbar" >
             <ul class="navbar__list">
-                <li class="navbar__item navbar__item--separate navbar__has-qr">
+                <li class="navbar__item navbar__item--separate navbar__has-qr" style="color:black">
                     Vào cửa hàng trên ứng dụng
                     <div class="navbar__qr">
                         <img src="/assets/img/qr_code.png" alt="QR code" class="navbar__qr-img">
@@ -37,10 +36,10 @@
                     </div>
 
                 </li>
-                <li class="navbar__item">
-                    <span class="navbar__title--no-pointer">Kết nối</span>
-                    <a href="https://www.facebook.com/haitamneeee/" class="navbar__icon-link"><i class="navbar__icon fa-brands fa-facebook"></i></a>
-                    <a href="https://www.instagram.com/im_simo.t/" class="navbar__icon-link"><i class="navbar__icon fa-brands fa-instagram"></i></a>
+                <li class="navbar__item" >
+                    <span class="navbar__title--no-pointer" style="color:black">Kết nối</span>
+                    <a href="https://www.facebook.com/haitamneeee/" class="navbar__icon-link"style="color:black"><i class="navbar__icon fa-brands fa-facebook"></i></a>
+                    <a href="https://www.instagram.com/im_simo.t/" class="navbar__icon-link"style="color:black"><i class="navbar__icon fa-brands fa-instagram"></i></a>
                 </li>
             </ul>
             <ul class="navbar__list">
@@ -102,7 +101,7 @@
                     </li>
                 }
                 <li class="navbar__item">
-                    <a href="@Url.Action("Contact","Home")" class="navbar__item-link">
+                    <a href="@Url.Action("Contact","Home")" class="navbar__item-link"style="color:black">
                         <i class="navbar__icon fa-solid fa-circle-question"></i>Trợ giúp
                     </a>
                 </li>
@@ -120,7 +119,7 @@
                                     <img src="~/Hinh/user.jpg" alt="" class="navbar__item-user-avt">
                                 }
                             }
-                            <span class="navbar__item-user-name"> @kh.FullName()</span>
+                            <span class="navbar__item-user-name"> @kh.FirstName</span>
                             <ul class="navbar__item-user-menu">
                                 <li class="navbar__item-user-item">
                                     <a href="@Url.Action("Profile","Account")"> Tài khoản của tôi</a>
@@ -144,7 +143,7 @@
                             @Html.ActionLink("Đăng ký", "Register", "Account", null, new { @class = "navbar__item navbar__item--strong" })
 
                         </li>
-                        <li class="navbar__item navbar__item--strong">
+                        <li class="navbar__item navbar__item--strong" >
                             @Html.ActionLink("Đăng nhập", "Login", "Account", null, new { @class = "navbar__item navbar__item--strong" })
                         </li>
                     }
@@ -161,7 +160,7 @@
                     <img src="~/Hinh/logo.png" class="header-search__logo-img" />
                 </a>
             </div>
-            @* Tìm kiếm sản phẩm theo tên - Thịnh *@
+            @* Tìm kiếm sản phẩm theo tên *@
             @using (Html.BeginForm("Index", "Home", FormMethod.Get, new { @class = "header-search__box-search" }))
             {
                 <div class="header-search__box-search-wrap">
@@ -169,8 +168,8 @@
                 </div>
 
 
-                <button class="header-search__box-search-btn" onclick="location.href='@Url.Action("Index", "Home")'">
-                    <i class="header-search__box-search-btn-icon fa-solid fa-magnifying-glass"></i>
+                <button class="header-search__box-search-btn" style="background-color: #FFB347" onclick="location.href='@Url.Action("Index", "Home")'">
+                    <i class="header-search__box-search-btn-icon fa-solid fa-magnifying-glass" style="color:black"></i>
                 </button>
             }
 
@@ -187,7 +186,7 @@
                 ViewBag.TongSoLuong = TongSoLuong();
             }
             <div class="header-search__cart">
-                <i class="header-search__cart-icon fa-solid fa-cart-shopping"></i>
+                <i class="header-search__cart-icon fa-solid fa-cart-shopping" style="color:black"></i>
                 <span class="header__cart-notice">@ViewBag.TongSoLuong</span>
                 @{if (list != null)
                     {

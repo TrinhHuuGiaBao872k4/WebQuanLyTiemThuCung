@@ -9,13 +9,125 @@
     @Styles.Render("~/Assets/Css/responsive.css")
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Định dạng cho banner quảng cáo */
+        .banner-container {
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+            position: relative;
+            background-color: #f8f8f8;
+            margin-top:10px;
+        }
+
+        /* Định dạng cho các slide */
+        .slide {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: opacity 0.5s ease;
+        }
+
+            /* Định dạng hình ảnh */
+            .slide img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        /* Định dạng cho các nút điều hướng */
+        .prev, .next {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            width: auto;
+            padding: 16px;
+            margin-top: -22px;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            transition: 0.3s;
+            border-radius: 0 3px 3px 0;
+            user-select: none;
+        }
+
+        /* Vị trí cho các nút điều hướng */
+        .prev {
+            left: 0;
+            border-radius: 3px 0 0 3px;
+        }
+
+        .next {
+            right: 0;
+            border-radius: 0 3px 3px 0;
+        }
+
+            /* Hiệu ứng hover cho các nút */
+            .prev:hover, .next:hover {
+                background-color: rgba(0,0,0,0.8);
+            }
+    </style>
 </head>
 <body>
 
     <div class="app">
+
         @{
             Html.RenderPartial("_navHeader");
         }
+
+        <!-- Banner quảng cáo -->
+        <div class="banner-container">
+            <div class="slide"><img src="~/Hinh/Screenshot 2024-11-13 093604.jpg" alt="Quảng cáo 1"></div>
+            <div class="slide"><img src="~/Hinh/Screenshot 2024-11-13 093643.jpg" alt="Quảng cáo 2"></div>
+            <div class="slide"><img src="~/Hinh/Screenshot 2024-11-13 093707.jpg" alt="Quảng cáo 3"></div>
+
+            <!-- Nút điều hướng -->
+            <a class="prev" onclick="changeSlide(-1)">&#10094;</a>
+            <a class="next" onclick="changeSlide(1)">&#10095;</a>
+        </div>
+
+        <script>
+            let slideIndex = 0;
+            let slides = document.querySelectorAll('.slide');
+            let autoSlideInterval;
+
+            // Hiển thị slide hiện tại
+            function showSlide(index) {
+                // Ẩn tất cả các slide
+                slides.forEach((slide, i) => {
+                    slide.style.display = 'none';
+                    slide.style.opacity = '0';
+                });
+
+                // Hiển thị slide được chọn
+                slides[index].style.display = 'block';
+                slides[index].style.opacity = '1';
+            }
+
+            // Chuyển đến slide kế tiếp hoặc trước đó
+            function changeSlide(n) {
+                clearInterval(autoSlideInterval); // Dừng tự động chuyển khi nhấn nút
+                slideIndex = (slideIndex + n + slides.length) % slides.length;
+                showSlide(slideIndex);
+                autoSlideInterval = setInterval(autoChangeSlide, 3000); // Khởi động lại tự động chuyển sau khi nhấn nút
+            }
+
+            // Tự động chuyển slide
+            function autoChangeSlide() {
+                slideIndex = (slideIndex + 1) % slides.length;
+                showSlide(slideIndex);
+            }
+
+            // Bắt đầu slideshow tự động
+            autoSlideInterval = setInterval(autoChangeSlide, 3000); // Tự động chuyển sau mỗi 3 giây
+
+            // Hiển thị slide đầu tiên khi tải trang
+            showSlide(slideIndex);
+        </script>
 
         @RenderBody()
 

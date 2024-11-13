@@ -3,6 +3,7 @@
 @model PagedList.PagedList<Nike.Models.Product>
 
 @{
+    QuanLySanPhamEntities _db = new QuanLySanPhamEntities();
     ViewBag.Title = "Danh sách sản phẩm";
     Layout = "~/Areas/Admin/Views/Shared/_layoutadmin.cshtml";
     var currentSearch = ViewBag.searchStr;
@@ -32,7 +33,7 @@
                     <div class="col-sm-2">
                         <a class="btn btn-delete print-file btn-sm" href="@Url.Action("Create","Product")">
                             <i class="fas fa-plus"></i>
-                            Tạo mới khóa học
+                            Tạo mới sản phẩm 
                         </a>
                     </div>
                     <div class="col-sm-2">
@@ -117,15 +118,15 @@
                                 <td>
                                     @{ if (item.SoLuong > 0 && item.SoLuong > 50)
                                         {
-                                        <span class="badge bg-success">Còn hàng</span> }
+                                            <span class="badge bg-success">Còn hàng</span> }
                                         else if (item.SoLuong > 0 && item.SoLuong < 50)
                                         {
-                                        <span class="badge badge-warning">Sắp hết sản phẩm</span> }
-                                        else 
+                                            <span class="badge badge-warning">Sắp hết sản phẩm</span> }
+                                        else
                                         {
-                                        <span class="badge bg-danger">Hết sản phẩm</span>
+                                            <span class="badge bg-danger">Hết sản phẩm</span>
                                         }
-                                      }
+                                    }
                                 </td>
                                 <td>@string.Format("{0:#,0}", item.UnitPrice) đ</td>
                                 <td>@item.Catalog.CatalogName</td>
@@ -149,7 +150,7 @@
                 @if (totalPage > 1)
                 {
                     <div class="MenuTrang pagination">
-                        @Html.PagedListPager(Model, page => Url.Action("Index", new {searchString = currentSearch , page = page }),
+                        @Html.PagedListPager(Model, page => Url.Action("Index", new { searchString = currentSearch, page = page }),
                           new PagedListRenderOptions()
                           {
                               LiElementClasses = new[] { "paginate_button page-item page-link" },

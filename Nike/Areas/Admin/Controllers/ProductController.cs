@@ -25,7 +25,7 @@ namespace Nike.Areas.Admin.Controllers
 
             var products = _db.Products.ToList();
 
-            // tìm kiếm sản phẩm - Duy
+            // tìm kiếm sản phẩm 
             if (!String.IsNullOrEmpty(searchString))
             {
                 searchString = searchString.ToLower();
@@ -62,7 +62,7 @@ namespace Nike.Areas.Admin.Controllers
             return View(ViewBag.products);
         }
 
-        // Tạo sản phẩm mới - Nhân
+        // Tạo sản phẩm mới
         public ActionResult Create()
         {
             ViewBag.CatalogId = new SelectList(_db.Catalogs, "ID", "CatalogName");
@@ -104,7 +104,7 @@ namespace Nike.Areas.Admin.Controllers
             ViewBag.CatalogId = new SelectList(_db.Catalogs, "ID", "CatalogName", model.CatalogId);
             return View(model);
         }
-        // Chức năng sửa thông tin sản phẩm - Nhân
+        // Chức năng sửa thông tin sản phẩm 
         public ActionResult Edit(int Id)
         {
 
@@ -160,15 +160,16 @@ namespace Nike.Areas.Admin.Controllers
             return View(product);
         }
 
-        // Hàm xóa sản phẩm - Phát
-        public ActionResult Delete(int? id)
+        // Hàm xóa sản phẩm 
+        [HttpGet]
+        public ActionResult Delete(int id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            Product product = _db.Products.Find(id);
+            var product = _db.Products.Where(p => p.Id == id).FirstOrDefault();
             if (product == null)
             {
                 return HttpNotFound();
@@ -178,26 +179,19 @@ namespace Nike.Areas.Admin.Controllers
         }
 
         [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id)
+        public ActionResult DeleteConfirmed(int id)
         {
             try
             {
-                Product product = _db.Products.Find(id);
-                if (product != null)
-                {
-                    _db.Products.Remove(product);
-                    _db.SaveChanges();
-                }
+                var product = _db.Products.Where(p => p.Id == id).FirstOrDefault();
+                _db.Products.Remove(product);
+                _db.SaveChanges();
+                return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-                // Ghi log lỗi hoặc xử lý ngoại lệ nếu cần
-                Console.WriteLine("Error deleting product: " + ex.Message);
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Unable to delete product");
+                return Content("Không xóa được do có liên quan đến bản khác!");
             }
-
-            return RedirectToAction("Index");
         }
 
     }

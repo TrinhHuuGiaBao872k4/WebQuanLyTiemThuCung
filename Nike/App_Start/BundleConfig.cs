@@ -27,7 +27,7 @@ namespace Nike
                       "~/Content/site.css",
                        "~/Assets/Css/main.css",
                        "~/Assets/Css/base.css"));
-
+            bundles.Add(new StyleBundle("~/cssmain").Include("~/Assets/Css/main.css"));
         }
     }
 }

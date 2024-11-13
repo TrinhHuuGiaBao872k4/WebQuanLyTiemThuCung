@@ -140,6 +140,34 @@ namespace Nike.Areas.Admin.Controllers
 
             return RedirectToAction("Index");
         }
-
+        
+        public ActionResult XoaDon(int Id) 
+        {
+            if (Id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            var order = _db.Orders.Where(r => r.ID == Id).FirstOrDefault();
+            if (order == null)
+            {
+                return HttpNotFound();
+            }
+            return View(order);
+        }
+        [HttpPost, ActionName("XoaDon")]
+        public ActionResult XacNhanXoaDon(int Id)
+        {
+            try
+            {
+                var donHang = _db.Orders.Where(r => r.ID == Id).FirstOrDefault();
+                _db.Orders.Remove(donHang);
+                _db.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                return Content("Không xóa được do có liên quan đến bản khác!");
+            }
+        }
     }
 }

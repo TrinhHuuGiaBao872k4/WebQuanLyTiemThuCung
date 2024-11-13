@@ -24,7 +24,7 @@ namespace Nike.Controllers
             {
                 Sort(sort, pageIndex);
             }
-            // Tìm kiếm sản phẩm theo tên - Thịnh
+            // Tìm kiếm sản phẩm theo tên 
             else
             {
                 searchStr.ToLower();
@@ -37,7 +37,7 @@ namespace Nike.Controllers
             }
             return View();
         }
-        // Hàm sắp xếp bởi Nhân
+        // Hàm sắp xếp bởi 
         public void Sort(string sort, int pageIndex)
         {
             //Product
