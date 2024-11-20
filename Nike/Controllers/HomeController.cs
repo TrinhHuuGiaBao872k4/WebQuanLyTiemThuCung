@@ -16,7 +16,7 @@ namespace Nike.Controllers
     {
         private QuanLySanPhamEntities _db = new QuanLySanPhamEntities();
 
-        public ActionResult Index(string searchStr,string sort, int pageIndex = 1)
+        public ActionResult Index(string searchStr, string sort, int pageIndex = 1)
         {
             //Catalog
             ViewBag.catalogs = (from s in _db.Catalogs select s).ToList();
