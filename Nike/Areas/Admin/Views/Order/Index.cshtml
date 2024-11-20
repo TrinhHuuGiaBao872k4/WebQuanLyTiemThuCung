@@ -47,7 +47,7 @@
                         <span>Trang @*@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)/ @totalPage*@</span>
                     </div>
                     <div class="col-sm-12 col-md-6">
-                        @* Tìm kiếm sản phẩm trong admin - Phạm Duy *@
+                        @* Tìm kiếm sản phẩm trong admin*@
                         @using (Html.BeginForm("Index", "Order", FormMethod.Get, new { @class = "dataTables_filter d-flex justify-content-end" }))
                         {
                             <label>

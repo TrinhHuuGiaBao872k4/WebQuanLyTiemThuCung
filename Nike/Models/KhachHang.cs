@@ -27,6 +27,8 @@ namespace Nike.Models
         public string Password { get; set; }
         public string Picture { get; set; }
         public string Address { get; set; }
+        public string ConfirmPassword { get; set; }
+        public string oldPassword { get; set; }
         public Nullable<System.DateTime> NgaySinh { get; set; }
         public string CMT { get; set; }
         public string Sdt { get; set; }

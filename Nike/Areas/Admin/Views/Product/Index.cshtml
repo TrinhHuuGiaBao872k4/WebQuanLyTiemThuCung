@@ -63,7 +63,7 @@
                         <span>Trang @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)/ @totalPage</span>
                     </div>
                     <div class="col-sm-12 col-md-6">
-                        @* Tìm kiếm sản phẩm trong admin - Phạm Duy *@
+                        @* Tìm kiếm sản phẩm trong admin*@
                         @using (Html.BeginForm("Index", "Product", FormMethod.Get, new { @class = "dataTables_filter d-flex justify-content-end" }))
                         {
                             <label>
@@ -78,7 +78,7 @@
                 <table class="table table-hover table-bordered" id="sampleTable">
                     <thead>
                         <tr>
-
+                            <th>STT</th>
                             <th>Mã sản phẩm</th>
                             <th>Tên sản phẩm</th>
                             <th>Ảnh</th>
@@ -90,10 +90,14 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @{
+                            int index = (Model.PageNumber - 1) * Model.PageSize; // Tính số thứ tự bắt đầu trên mỗi trang
+                        }
                         @foreach (var item in ViewBag.products)
                         {
+                            index++;
                             <tr>
-
+                                <td>@index</td>
                                 <td>@item.ProductCode</td>
                                 <td>@item.ProductName</td>
                                 <td>

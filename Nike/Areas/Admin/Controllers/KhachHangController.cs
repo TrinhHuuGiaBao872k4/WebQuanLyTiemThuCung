@@ -21,12 +21,12 @@ namespace Nike.Areas.Admin.Controllers
             }
             var dsKhachHang = _db.KhachHangs.ToList();
 
-            // Tìm kiếm khách hàng trong quản lí khách hàng bằng email - Duy 
+            // Tìm kiếm khách hàng trong quản lí khách hàng bằng email
             if (!String.IsNullOrEmpty(searchStr))
             {
                 searchStr = searchStr.ToLower();
-                dsKhachHang = dsKhachHang.Where(s => s.Email.ToLower().Contains(searchStr)).ToList();
-                ViewBag.dsKh = dsKhachHang;
+                dsKhachHang = _db.KhachHangs.Where(s => !string.IsNullOrEmpty(s.Email) && s.Email.ToLower().Contains(searchStr)).ToList();
+                ViewBag.dsKH = dsKhachHang;
             }
             else
             {

@@ -193,6 +193,14 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        
+        
+        
+        
+        
+        
+        
+        
         <EntityContainer Name="QuanLySanPhamModelStoreContainer">
           <EntitySet Name="Catalog" EntityType="Self.Catalog" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ChucVu" EntityType="Self.ChucVu" Schema="dbo" store:Type="Tables" />

@@ -52,9 +52,9 @@
                                 <th>
                                     Địa chỉ
                                 </th>
-                                <th>
-                                    Loại khách hàng
-                                </th>
+                                @*<th>
+                                    Mã khách hàng
+                                </th>*@
                                 <th>
                                     Số điện thoại
                                 </th>
@@ -66,6 +66,8 @@
                         <tbody>
                             @foreach (var item in ViewBag.dsKH)
                             {
+                                if (item != null)
+                                {
                                 <tr>
                                     <td>
                                         @item.FullName()
@@ -100,13 +102,13 @@
                                     </td>
                                     <td class="table-td-center">
                                         <button class="btn btn-primary btn-sm user-btn" type="button" title="Xem thông tin"
-                                                    onclick="location.href='@Url.Action("Detail", "KhachHang",new { Id = item.idUser })'">
+                                                    onclick="location.href='@Url.Action("Detail", "KhachHang", new { Id = item.idUser })'">
                                             <i class="fas fa-user"></i>
                                         </button>
                                     </td>
                                 </tr>
+                                }
                             }
-
                         </tbody>
                     </table>
                 </dov>
