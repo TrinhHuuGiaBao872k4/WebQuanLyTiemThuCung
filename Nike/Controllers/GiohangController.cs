@@ -6,12 +6,15 @@ using System.Data.Entity;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using Nike.DesignPatterns;
 
 namespace Nike.Controllers
 {
     public class GiohangController : Controller
     {
-        QuanLySanPhamEntities _db = new QuanLySanPhamEntities();
+        
+        // Sử dụng Singleton để lấy instance của QuanLySanPhamEntities
+        private QuanLySanPhamEntities _db = DbContextSingleton.Instance;
         // GET: Giohang
         public ActionResult Index()
         {
@@ -29,7 +32,6 @@ namespace Nike.Controllers
             {
                 listGiohang = new List<Giohang>();
                 Session["Giohang"] = listGiohang;
-
             }
             return listGiohang;
         }
@@ -44,7 +46,8 @@ namespace Nike.Controllers
             }
             return iTongSoLuong;
         }
-        //Tính tổng tiền sản phẩm
+
+        // Tính tổng tiền sản phẩm
         private double TongTien()
         {
             double iTongTien = 0;
@@ -56,14 +59,11 @@ namespace Nike.Controllers
             return iTongTien;
         }
 
-        //Xóa sản phẩm khỏi giỏ hàng 
+        // Xóa sản phẩm khỏi giỏ hàng 
         public ActionResult Xoagiohang(int IdProduct)
         {
-            // Lấy giỏ hàng từ session
             List<Giohang> listGiohang = Laygiohang();
-            // Kiểm tra sản phẩm có trong giỏ hàng hay không
             Giohang product = listGiohang.SingleOrDefault(n => n.IdProduct == IdProduct);
-            //nếu tồn tại thì sửa số lượng
             if (product != null)
             {
                 listGiohang.RemoveAll(n => n.IdProduct == IdProduct);
@@ -78,9 +78,7 @@ namespace Nike.Controllers
 
         public ActionResult Capnhatgiohang(int IdProduct, FormCollection f)
         {
-            // Lấy giỏ hàng từ session
             List<Giohang> listGiohang = Laygiohang();
-            // Kiểm tra sản phẩm có trong giỏ hàng hay không
             Giohang product = listGiohang.SingleOrDefault(n => n.IdProduct == IdProduct);
             if (product != null)
             {
@@ -88,6 +86,7 @@ namespace Nike.Controllers
             }
             return RedirectToAction("Index");
         }
+
         public ActionResult DeleteAll()
         {
             List<Giohang> listGiohang = Laygiohang();

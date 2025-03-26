@@ -1,4 +1,6 @@
-﻿using Nike.Models;
+﻿using Nike.DesignPatterm.StrategyPattern;
+using Nike.Models;
+ // Import namespace chứa các chiến lược
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -6,21 +8,42 @@ using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using Nike.DesignPatterns.Proxy;
 
 namespace Nike.Controllers
 {
     public class AccountController : Controller
     {
         private QuanLySanPhamEntities _db = new QuanLySanPhamEntities();
+
+        // Hàm hỗ trợ để lấy chiến lược dựa trên trạng thái
+        private IOrderStatusStrategy GetOrderStatusStrategy(string status)
+        {
+            switch (status)
+            {
+                case "Wait":
+                    return new WaitOrderStrategy();
+                case "Deli":
+                    return new DeliOrderStrategy();
+                case "Done":
+                    return new DoneOrderStrategy();
+                case "Cancel":
+                    return new CancelOrderStrategy();
+                default:
+                    throw new ArgumentException("Trạng thái không hợp lệ");
+            }
+        }
+
         public ActionResult Index()
         {
             return View();
         }
+
         public ActionResult Register()
         {
             return View();
         }
-        //POST: Register
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Register(KhachHang khachhang)
@@ -44,6 +67,7 @@ namespace Nike.Controllers
             }
             return View();
         }
+
         public ActionResult Login()
         {
             return View();
@@ -64,32 +88,30 @@ namespace Nike.Controllers
                 }
                 else
                 {
-                    //ModelState.AddModelError("", "Sai email hoặc mật khẩu");
                     ViewBag.error = "Vui lòng thử lại, xin cảm ơn.";
                     return View();
                 }
             }
             return View();
         }
-        //Logout
+
         public ActionResult Logout()
         {
             Session.Clear();
             return RedirectToAction("Index", "Home");
         }
-        
+
         public ActionResult ProFile()
         {
             KhachHang kh = (KhachHang)Session["Taikhoan"];
             KhachHang khachHang = _db.KhachHangs.Find(kh.idUser);
 
-            if (kh!= null && khachHang!=null)
+            if (kh != null && khachHang != null)
             {
                 return View(khachHang);
             }
             return HttpNotFound();
         }
-        
 
         public ActionResult EditProFile(int idUser)
         {
@@ -99,10 +121,10 @@ namespace Nike.Controllers
             if (khsession.idUser != kh.idUser)
             {
                 return HttpNotFound();
-
             }
             return View(kh);
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult EditProFile([Bind(Include = "idUser,FirstName,LastName,Email,Picture,Address,NgaySinh,CMT,Sdt,Password,ConfirmPassword")] KhachHang kh, HttpPostedFileBase file)
@@ -115,8 +137,7 @@ namespace Nike.Controllers
                 if (file != null)
                 {
                     string pic = System.IO.Path.GetFileName(file.FileName);
-                    String path = System.IO.Path.Combine(
-                                            Server.MapPath("~/Hinh/KhachHang"), pic);
+                    String path = System.IO.Path.Combine(Server.MapPath("~/Hinh/KhachHang"), pic);
                     file.SaveAs(path);
                     using (MemoryStream ms = new MemoryStream())
                     {
@@ -151,16 +172,16 @@ namespace Nike.Controllers
             }
             return View(kh);
         }
+
         public ActionResult ChangePassword(int idUser)
         {
             KhachHang khsession = (KhachHang)Session["Taikhoan"];
             KhachHang kh = _db.KhachHangs.Find(idUser);
-            kh.ConfirmPassword =null;
+            kh.ConfirmPassword = null;
             kh.Password = null;
             if (khsession.idUser != kh.idUser)
             {
                 return HttpNotFound();
-
             }
             return View(kh);
         }
@@ -171,11 +192,11 @@ namespace Nike.Controllers
         {
             KhachHang khachhang = _db.KhachHangs.Find(kh.idUser);
             ModelState.Remove("FirstName");
-            ModelState.Remove("LastName"); 
+            ModelState.Remove("LastName");
             ModelState.Remove("Email");
             if (ModelState.IsValid)
             {
-                if(!khachhang.Password.Equals(kh.oldPassword))
+                if (!khachhang.Password.Equals(kh.oldPassword))
                 {
                     ModelState.AddModelError(nameof(KhachHang.oldPassword), "Mật khẩu cũ không đúng");
                     return View(kh);
@@ -188,40 +209,23 @@ namespace Nike.Controllers
             }
             return View(kh);
         }
+
         public ActionResult OrderList(string sr)
         {
-
             var orderList = (from s in _db.Orders select s).ToList();
             var orderDetail = (from s in _db.Order_Detail select s).ToList();
             ViewBag.orderDetail = orderDetail;
-            //ViewBag.orderList = orderList;
+
             if (String.IsNullOrEmpty(sr))
             {
                 ViewBag.orderList = orderList;
             }
             else
             {
-                switch (sr)
-                {
-                    case "Wait":
-                        ViewBag.orderList = orderList.Where(s => s.Status == "Chưa giao hàng");
-                        break;
-                    case "Deli":
-                        ViewBag.orderList = orderList.Where(s => s.Status == "Đang giao hàng");
-                        break;
-                    case "Done":
-                        ViewBag.orderList = orderList.Where(s => s.Status == "Hoàn thành");
-                        break;
-                    case "Cancel":
-                        ViewBag.orderList = orderList.Where(s => s.Status == "Đã hủy");
-                        break;
-                    default:
-                        ViewBag.orderList = orderList.Where(s => s.ID.ToString().Contains(sr));
-                        break;
-                }
+                IOrderStatusStrategy strategy = GetOrderStatusStrategy(sr);
+                ViewBag.orderList = orderList.Where(s => s.Status == strategy.GetType().Name.Replace("OrderStrategy", ""));
             }
 
-            //ViewBag.TongSoLuong = TongSoLuong();
             KhachHang kh = new KhachHang();
             if (Session["Taikhoan"] == null)
             {
@@ -233,22 +237,29 @@ namespace Nike.Controllers
             }
             return View(kh);
         }
-        //Hủy đơn hàng 
+
         public ActionResult CancelOrder(int ID)
         {
-            var orderList = (from s in _db.Orders select s).ToList();
-            Order order = _db.Orders.Find(ID);
-            if (order.Status == "Chưa giao hàng")
+            KhachHang kh = (KhachHang)Session["Taikhoan"];
+            if (kh == null)
             {
-                order.Status = "Đã hủy";
+                return RedirectToAction("Login", "Account");
             }
-            else
-            {
-                order.Status = order.Status;
-            }
-            return View(order);
 
+            try
+            {
+                var orderService = new OrderServiceProxy(_db, kh);
+                orderService.CancelOrder(ID);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                ViewBag.Error = ex.Message;
+                return View("Error"); // Trả về view thông báo lỗi
+            }
+
+            return RedirectToAction("OrderList");
         }
+
         [HttpPost, ActionName("CancelOrder")]
         [ValidateAntiForgeryToken]
         public ActionResult CancelOrderConfirmed(int ID)
@@ -256,28 +267,37 @@ namespace Nike.Controllers
             try
             {
                 Order order = _db.Orders.Find(ID);
-                order.Status = "Đã hủy";
+                IOrderStatusStrategy strategy = new CancelOrderStrategy();
+                strategy.ProcessOrder(order);
+
                 _db.Entry(order).State = EntityState.Modified;
                 _db.SaveChanges();
             }
             catch
             {
-
+                // Xử lý lỗi nếu cần
             }
             return RedirectToAction("OrderList");
         }
 
         public ActionResult HoaDon(int ID)
         {
-            Order order = _db.Orders.Find(ID);
-            KhachHang kh = (KhachHang)Session["TaiKhoan"];
-            if (order.KhachHangID == kh.idUser)
+            KhachHang kh = (KhachHang)Session["Taikhoan"];
+            if (kh == null)
             {
+                return RedirectToAction("Login", "Account");
+            }
+
+            try
+            {
+                var orderService = new OrderServiceProxy(_db, kh);
+                var order = orderService.GetOrderDetails(ID);
                 return View(order);
             }
-            else
+            catch (UnauthorizedAccessException ex)
             {
-                return HttpNotFound();
+                ViewBag.Error = ex.Message;
+                return View("Error"); // Trả về view thông báo lỗi
             }
         }
     }
