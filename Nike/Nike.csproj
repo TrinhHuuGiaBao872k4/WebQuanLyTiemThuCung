@@ -238,6 +238,15 @@
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\GiohangController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="DesignPatterm\Proxy\IOrderService.cs" />
+    <Compile Include="DesignPatterm\Proxy\OrderService.cs" />
+    <Compile Include="DesignPatterm\Proxy\OrderServiceProxy.cs" />
+    <Compile Include="DesignPatterm\Singleton.cs" />
+    <Compile Include="DesignPatterm\StrategyPattern\CancelOrderStrategy.cs" />
+    <Compile Include="DesignPatterm\StrategyPattern\DeliOrderStrategy.cs" />
+    <Compile Include="DesignPatterm\StrategyPattern\DoneOrderStrategy.cs" />
+    <Compile Include="DesignPatterm\StrategyPattern\IOrderStatusStrategy.cs" />
+    <Compile Include="DesignPatterm\StrategyPattern\WaitOrderStrategy.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
