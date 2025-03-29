@@ -1,17 +1,22 @@
 ﻿using Nike.Models;
-using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 using System.Net;
-using System.Web;
 using System.Web.Mvc;
 
 namespace Nike.Areas.Admin.Controllers
 {
     public class CatalogController : Controller
-    { // GET: Catalog
-        private QuanLySanPhamEntities _db = new QuanLySanPhamEntities();
+    {
+        private readonly IRepository<Catalog> _catalogRepository;
+
+        public CatalogController()
+        {
+            // Initialize with concrete repository
+            _catalogRepository = new CatalogRepository(new QuanLySanPhamEntities());
+        }
+
+        // GET: Admin/Catalog
         public ActionResult Index()
         {
             NhanVien nv = (NhanVien)Session["NV"];
@@ -19,92 +24,103 @@ namespace Nike.Areas.Admin.Controllers
             {
                 return RedirectToAction("Index", "Home");
             }
-            var catalog = (from s 
-                           in _db.Catalogs 
-                           select s).ToList();
-            ViewBag.catalogs = catalog;
-            return View();
 
+            var catalogs = _catalogRepository.GetAll();
+            return View(catalogs);
         }
+
         public ActionResult Create()
         {
             return View(new Catalog() { ID = 0, CatalogCode = "", CatalogName = "" });
         }
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(Catalog model)
         {
-            var catalogs = (from s in _db.Catalogs select s).ToList();
-            model.ID = catalogs.Last().ID + 1;
-            // lưu dữ liệu vào db
-            if (string.IsNullOrEmpty(model.CatalogCode) && string.IsNullOrEmpty(model.CatalogName) == true)
-            {
-                ModelState.AddModelError("", "Mã danh mục không được để trống");
-                return View(model);
-            }
-            _db.Catalogs.Add(model);
-            _db.SaveChanges();
-
-            if (model.ID > 0)
-            {
-                return RedirectToAction("Index");
-            }
-            else
-            {
-                ModelState.AddModelError("", "Không lưu vào được database");
-                return View(model);
-            }
-        }
-        public ActionResult Edit(int ID)
-        {
-            if (ID == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Catalog catalog = _db.Catalogs.Find(ID);
-            if (catalog == null)
-            {
-                return HttpNotFound();
-            }
-            return View(catalog);
-        }
-        [HttpPost, ActionName("Edit")]
-        [ValidateAntiForgeryToken]
-        public ActionResult EditPost([Bind(Include = "ID,CatalogCode,CatalogName")] Catalog catalogs)
-        {
-            Catalog catalog = _db.Catalogs.Find(catalogs.ID);
             if (ModelState.IsValid)
             {
-                catalog.ID = catalogs.ID;
-                catalog.CatalogCode = catalogs.CatalogCode;
-                catalog.CatalogName = catalogs.CatalogName;
-                _db.Entry(catalog).State = EntityState.Modified;
-                _db.SaveChanges();
+                // Auto-increment ID (remove if using database auto-increment)
+                var allCatalogs = _catalogRepository.GetAll();
+                model.ID = allCatalogs.Any() ? allCatalogs.Last().ID + 1 : 1;
+
+                _catalogRepository.Add(model);
+                _catalogRepository.SaveChanges();
+
                 return RedirectToAction("Index");
             }
-            return View(catalog);
-        }
-        public ActionResult Delete(int ID)
-        {
 
+            return View(model);
+        }
+
+        public ActionResult Edit(int? ID)
+        {
             if (ID == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Catalog catalog = _db.Catalogs.Find(ID);
+
+            Catalog catalog = _catalogRepository.GetByID(ID.Value);
             if (catalog == null)
             {
                 return HttpNotFound();
             }
+
             return View(catalog);
         }
-        // POST: KhachHang/Delete/5
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit([Bind(Include = "ID,CatalogCode,CatalogName")] Catalog model)
+        {
+            if (ModelState.IsValid)
+            {
+                var existingCatalog = _catalogRepository.GetByID(model.ID);
+                if (existingCatalog == null)
+                {
+                    return HttpNotFound();
+                }
+
+                // Update properties
+                existingCatalog.CatalogCode = model.CatalogCode;
+                existingCatalog.CatalogName = model.CatalogName;
+
+                _catalogRepository.Update(existingCatalog);
+                _catalogRepository.SaveChanges();
+
+                return RedirectToAction("Index");
+            }
+
+            return View(model);
+        }
+
+        public ActionResult Delete(int? ID)
+        {
+            if (ID == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            Catalog catalog = _catalogRepository.GetByID(ID.Value);
+            if (catalog == null)
+            {
+                return HttpNotFound();
+            }
+
+            return View(catalog);
+        }
+
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int ID)
         {
-            Catalog catalog = _db.Catalogs.Find(ID);
-            _db.Catalogs.Remove(catalog);
-            _db.SaveChanges();
+            Catalog catalog = _catalogRepository.GetByID(ID);
+            if (catalog != null)
+            {
+                _catalogRepository.Delete(catalog);
+                _catalogRepository.SaveChanges();
+            }
+
             return RedirectToAction("Index");
         }
     }
