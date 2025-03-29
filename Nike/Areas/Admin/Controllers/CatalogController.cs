@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Web.Mvc;
+using Nike.DesignPatterm.RepositoryPattern;
 
 namespace Nike.Areas.Admin.Controllers
 {

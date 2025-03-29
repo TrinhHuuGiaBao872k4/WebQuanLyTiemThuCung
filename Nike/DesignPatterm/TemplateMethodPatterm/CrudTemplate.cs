@@ -1,4 +1,4 @@
-﻿using Nike.DesignPatterm.TemplateMethodPatterm;
+using Nike.Areas.Admin.Patterns.Templates;
 using Nike.Models;
 using System;
 using System.Linq;
