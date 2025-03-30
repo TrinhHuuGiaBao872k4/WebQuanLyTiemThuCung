@@ -7,41 +7,47 @@ using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Script.Serialization;
-
+using Nike.DesignPatterns.Decorators;
 namespace Nike.Areas.Admin.Controllers
 {
     public class HomeController : Controller
     {
         private QuanLySanPhamEntities _db = new QuanLySanPhamEntities();
+        private readonly IOrderService _orderService;
         // GET: Admin/Home
         public ActionResult Index()
         {
             return View();
         }
 
+        public HomeController()
+        {
+            _orderService = new OrderServiceLoggingDecorator(
+                new OrderService(_db),
+                new FileLogger());
+        }
+
         [HttpGet]
         public ActionResult getDataOrder()
         {
             bool proxyCreation = _db.Configuration.ProxyCreationEnabled;
+            _db.Configuration.ProxyCreationEnabled = false;
+
             try
             {
-                _db.Configuration.ProxyCreationEnabled = false;
-
-            //your stuff
-            var result = _db.Orders.ToList();
-            return Json(result, JsonRequestBehavior.AllowGet);
-            } catch(Exception ex)
+                var result = _orderService.GetOrders();
+                return Json(result, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(ex.Message);
             }
             finally
             {
-                //restore ProxyCreation to its original state
                 _db.Configuration.ProxyCreationEnabled = proxyCreation;
             }
         }
-
         //Đăng nhập - đăng xuất admin
         [HttpPost]
         [ValidateAntiForgeryToken]

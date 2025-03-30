@@ -1,10 +1,7 @@
-﻿using Nike.Models;
+﻿using Nike.DesignPatterm.TemplateMethodPatterm;
+using Nike.Models;
 using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.IO;
 using System.Linq;
-using System.Net;
 using System.Web;
 using System.Web.Mvc;
 
@@ -12,166 +9,141 @@ namespace Nike.Areas.Admin.Controllers
 {
     public class NhanVienController : Controller
     {
-        // GET: Admin/NhanVien
-        private QuanLySanPhamEntities _db = new QuanLySanPhamEntities();
-        // GET: Admin/NhanVien
+        private readonly QuanLySanPhamEntities _db;
+        private readonly NhanVienCrudTemplate _crudTemplate;
 
-        // Hiển thị giao diện Admin 
+        public NhanVienController()
+        {
+            _db = new QuanLySanPhamEntities();
+            _crudTemplate = new NhanVienCrudTemplate(_db);
+        }
+
         public ActionResult Index(string searchString)
         {
-            NhanVien nv = (NhanVien)Session["NV"];
-            if (nv.MaChucVu == 2)
-            {
-                return RedirectToAction("Index", "Home");
-            }
-            var dsNhanVien = (from s in _db.NhanViens select s).ToList();
-            // Tìm kiếm nhân viên trong quản lí nhân viên 
-            if (!String.IsNullOrEmpty(searchString))
+            var nv = (NhanVien)Session["NV"];
+            if (nv?.MaChucVu == 2) return RedirectToAction("Index", "Home");
+
+            var dsNhanVien = _db.NhanViens.AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchString))
             {
                 searchString = searchString.ToLower();
-                ViewBag.NhanVien = dsNhanVien.Where(s => s.FullName.ToLower().Contains(searchString)).ToList();
+                dsNhanVien = dsNhanVien.Where(s => s.FullName.ToLower().Contains(searchString));
             }
-            else
-            {
-                ViewBag.NhanVien = dsNhanVien;
-            }
-            return View();
+
+            return View(dsNhanVien.ToList());
         }
-        // Thêm nhân viên mới
+
         public ActionResult Create()
         {
-            ViewBag.MaChucVu = new SelectList(_db.ChucVus, "MaChucVu", "ChucVu1");
+            PrepareViewBag();
             return View();
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(HttpPostedFileBase file, [Bind(Include = "FullName,Email,Address,NgaySinh,Password,MaChucVu,Sex,Sdt")] NhanVien nhanvien)
+        public ActionResult Create(HttpPostedFileBase file, NhanVien nhanvien)
         {
-
-            if (ModelState.IsValid)
-            {
-                String anh = "user.jpg";
-                if (file != null)
+            return _crudTemplate.ExecuteCreate(
+                entity: nhanvien,
+                file: file,
+                beforeSave: e =>
                 {
-                    string pic = System.IO.Path.GetFileName(file.FileName);
-                    String path = System.IO.Path.Combine(Server.MapPath("~/Hinh/NhanVien"), pic);
-                    file.SaveAs(path);
-                    anh = pic;
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        file.InputStream.CopyTo(ms);
-                        byte[] array = ms.GetBuffer();
-                    }
+                    if (string.IsNullOrEmpty(e.Password))
+                        e.Password = "default@123";
+                },
+                successResult: () => RedirectToAction("Index"),
+                errorResult: () =>
+                {
+                    PrepareViewBag();
+                    return View(nhanvien);
                 }
-                nhanvien.Picture = anh;
-                _db.NhanViens.Add(nhanvien); // thêm đối tượng Link
-                _db.SaveChanges(); // lưu lại
-                return RedirectToAction("Index"); // quay trở về trang Index để xem kết quả thay đổi
-            }
-            ViewBag.MaChucVu = new SelectList(_db.ChucVus, "MaChucVu", "ChucVu1", nhanvien.MaChucVu);
-            return View(nhanvien); // nếu không thể tạo mới thì trả về View như cũ
+            );
         }
 
-        // Sửa thông tin nhân viên
         public ActionResult Edit(int id)
         {
-            if (id.ToString() == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            NhanVien nhanvien = _db.NhanViens.Find(id);
-            if (nhanvien == null)
-            {
-                return HttpNotFound();
-            }
-            ViewBag.MaChucVu = new SelectList(_db.ChucVus, "MaChucVu", "ChucVu1", nhanvien.MaChucVu);
+            var nhanvien = _db.NhanViens.Find(id);
+            if (nhanvien == null) return HttpNotFound();
+
+            PrepareViewBag(nhanvien.MaChucVu);
             return View(nhanvien);
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "Id,FullName,Email,Address,NgaySinh,Password,MaChucVu,Picture,Sex,Sdt")] NhanVien nv, HttpPostedFileBase file)
+        public ActionResult Edit(NhanVien model, HttpPostedFileBase file)
         {
+            var existing = _db.NhanViens.Find(model.Id);
+            if (existing == null) return HttpNotFound();
 
-            NhanVien nhanvien = _db.NhanViens.Find(nv.Id);
-            ViewBag.MaChucVu = new SelectList(_db.ChucVus, "MaChucVu", "ChucVu1", nhanvien.MaChucVu);
-            if (ModelState.IsValid)
-            {
-                String anh = nhanvien.Picture;
-                if (file != null)
+            return _crudTemplate.ExecuteUpdate(
+                entity: model,
+                existing: existing,
+                file: file,
+                updateAction: e =>
                 {
-                    string pic = System.IO.Path.GetFileName(file.FileName);
-                    String path = System.IO.Path.Combine(
-                                           Server.MapPath("~/Hinh/NhanVien"), pic);
-                    file.SaveAs(path);
-                    anh = pic;
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        file.InputStream.CopyTo(ms);
-                        byte[] array = ms.GetBuffer();
-                    }
-                }
-                nhanvien.Picture = anh;
-                nhanvien.FullName = nv.FullName;
-                nhanvien.Email = nv.Email;
-                nhanvien.Address = nv.Address;
-                if (nv.NgaySinh != null)
+                    e.FullName = model.FullName;
+                    e.Email = model.Email;
+                    e.Address = model.Address;
+                    e.NgaySinh = model.NgaySinh ?? e.NgaySinh;
+                    e.Password = model.Password;
+                    e.MaChucVu = model.MaChucVu;
+                    e.Sex = model.Sex;
+                    e.Sdt = model.Sdt;
+                },
+                successResult: () => RedirectToAction("Index"),
+                errorResult: () =>
                 {
-                    nhanvien.NgaySinh = nv.NgaySinh;
+                    PrepareViewBag(model.MaChucVu);
+                    return View(model);
                 }
-                else
-                {
-                    nhanvien.NgaySinh = nhanvien.NgaySinh;
-                }
-
-                nhanvien.Password = nv.Password;
-                nhanvien.MaChucVu = nv.MaChucVu;
-                nhanvien.Sex = nv.Sex;
-                nhanvien.Sdt = nv.Sdt;
-                _db.Entry(nhanvien).State = EntityState.Modified;
-                _db.SaveChanges();
-                return RedirectToAction("Index");
-            }
-            return View(nv);
-
+            );
         }
-        //Xóa nhân viên
+
         public ActionResult Delete(int? id)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            NhanVien nhanvien = _db.NhanViens.Find(id);
-            if (nhanvien == null)
-            {
-                return HttpNotFound();
-            }
+            if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+
+            var nhanvien = _db.NhanViens.Find(id);
+            if (nhanvien == null) return HttpNotFound();
+
             return View(nhanvien);
         }
+
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int Id)
+        public ActionResult DeleteConfirmed(int id)
         {
-                NhanVien nhanvien = _db.NhanViens.Find(Id);
+            try
+            {
+                var nhanvien = _db.NhanViens.Find(id);
+                if (nhanvien == null) return HttpNotFound();
+
                 _db.NhanViens.Remove(nhanvien);
                 _db.SaveChanges();
                 return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                _crudTemplate.LogError(ex);
+                return View("Delete", _db.NhanViens.Find(id));
+            }
         }
 
-
-        // Xem chi tiết Nhân viên
         public ActionResult Detail(int? id)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            NhanVien nhanvien = _db.NhanViens.Find(id);
-            if (nhanvien == null)
-            {
-                return HttpNotFound();
-            }
+            if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+
+            var nhanvien = _db.NhanViens.Find(id);
+            if (nhanvien == null) return HttpNotFound();
+
             return View(nhanvien);
+        }
+
+        private void PrepareViewBag(int? maChucVu = null)
+        {
+            ViewBag.MaChucVu = new SelectList(_db.ChucVus, "MaChucVu", "ChucVu1", maChucVu);
         }
     }
 }
