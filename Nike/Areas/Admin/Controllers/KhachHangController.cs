@@ -5,7 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
-using Nike.DesignPatterm.PrototypePatterm;
+using Nike.DesignPattern.PrototypePattern;
 namespace Nike.Areas.Admin.Controllers
 {
     public class KhachHangController : Controller
@@ -19,10 +19,9 @@ namespace Nike.Areas.Admin.Controllers
             {
                 PrototypeManager.RegisterPrototype("default", new KhachHang
                 {
-                    HoTen = "Khách hàng mới",
+                    FirstName = "Khách hàng mới",
                     Email = "template@email.com",
-                    DiemTichLuy = 0,
-                    GioiTinh = true,
+                    TichLuy = 0,
                     NgaySinh = DateTime.Now.AddYears(-20)
                 });
             }

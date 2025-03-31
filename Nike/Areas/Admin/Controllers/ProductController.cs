@@ -1,4 +1,4 @@
-﻿using Nike.DesignPatterm.CommandPatterm;
+﻿using Nike.DesignPattern.CommandPattern;
 using Nike.Models;
 using PagedList;
 using System;

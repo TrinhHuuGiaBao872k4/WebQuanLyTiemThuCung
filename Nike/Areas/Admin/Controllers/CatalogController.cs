@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Web.Mvc;
-using Nike.DesignPatterm.RepositoryPattern;
+using Nike.DesignPattern.RepositoryPattern;
 
 namespace Nike.Areas.Admin.Controllers
 {
@@ -61,7 +61,7 @@ namespace Nike.Areas.Admin.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            Catalog catalog = _catalogRepository.GetByID(ID.Value);
+            Catalog catalog = _catalogRepository.GetById(ID.Value);
             if (catalog == null)
             {
                 return HttpNotFound();
@@ -76,7 +76,7 @@ namespace Nike.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                var existingCatalog = _catalogRepository.GetByID(model.ID);
+                var existingCatalog = _catalogRepository.GetById(model.ID);
                 if (existingCatalog == null)
                 {
                     return HttpNotFound();
@@ -102,7 +102,7 @@ namespace Nike.Areas.Admin.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            Catalog catalog = _catalogRepository.GetByID(ID.Value);
+            Catalog catalog = _catalogRepository.GetById(ID.Value);
             if (catalog == null)
             {
                 return HttpNotFound();
@@ -115,7 +115,7 @@ namespace Nike.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int ID)
         {
-            Catalog catalog = _catalogRepository.GetByID(ID);
+            Catalog catalog = _catalogRepository.GetById(ID);
             if (catalog != null)
             {
                 _catalogRepository.Delete(catalog);

@@ -7,7 +7,7 @@ using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Script.Serialization;
-using Nike.DesignPatterns.Decorators;
+using Nike.DesignPattern.DecoraterPattern;
 namespace Nike.Areas.Admin.Controllers
 {
     public class HomeController : Controller

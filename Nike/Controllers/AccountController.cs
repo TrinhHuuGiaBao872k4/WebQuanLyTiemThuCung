@@ -1,4 +1,4 @@
-﻿using Nike.DesignPatterm.StrategyPattern;
+﻿using Nike.DesignPattern.StrategyPattern;
 using Nike.Models;
  // Import namespace chứa các chiến lược
 using System;

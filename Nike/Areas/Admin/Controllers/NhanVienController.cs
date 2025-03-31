@@ -1,4 +1,4 @@
-﻿using Nike.DesignPatterm.TemplateMethodPatterm;
+﻿using Nike.DesignPattern.TemplateMethodPattern;
 using Nike.Models;
 using System;
 using System.Linq;
