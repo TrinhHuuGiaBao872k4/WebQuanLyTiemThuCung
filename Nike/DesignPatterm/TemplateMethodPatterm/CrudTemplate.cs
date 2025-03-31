@@ -1,149 +1,82 @@
-using Nike.Areas.Admin.Patterns.Templates;
-using Nike.Models;
+// File: DesignPattern/TemplateMethodPattern/CrudTemplate.cs
 using System;
-using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
-namespace Nike.Areas.Admin.Controllers
+namespace Nike.DesignPattern.TemplateMethodPattern
 {
-    public class NhanVienController : Controller
+    public abstract class CrudTemplate<T> where T : class
     {
-        private readonly QuanLySanPhamEntities _db;
-        private readonly NhanVienCrudTemplate _crudTemplate;
+        protected readonly QuanLySanPhamEntities _db;
 
-        public NhanVienController()
+        public CrudTemplate(QuanLySanPhamEntities db)
         {
-            _db = new QuanLySanPhamEntities();
-            _crudTemplate = new NhanVienCrudTemplate(_db);
+            _db = db;
         }
 
-        public ActionResult Index(string searchString)
-        {
-            var nv = (NhanVien)Session["NV"];
-            if (nv?.MaChucVu == 2) return RedirectToAction("Index", "Home");
-
-            var dsNhanVien = _db.NhanViens.AsQueryable();
-
-            if (!string.IsNullOrEmpty(searchString))
-            {
-                searchString = searchString.ToLower();
-                dsNhanVien = dsNhanVien.Where(s => s.FullName.ToLower().Contains(searchString));
-            }
-
-            return View(dsNhanVien.ToList());
-        }
-
-        public ActionResult Create()
-        {
-            PrepareViewBag();
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(HttpPostedFileBase file, NhanVien nhanvien)
-        {
-            return _crudTemplate.ExecuteCreate(
-                entity: nhanvien,
-                file: file,
-                beforeSave: e =>
-                {
-                    if (string.IsNullOrEmpty(e.Password))
-                        e.Password = "default@123";
-                },
-                successResult: () => RedirectToAction("Index"),
-                errorResult: () =>
-                {
-                    PrepareViewBag();
-                    return View(nhanvien);
-                }
-            );
-        }
-
-        public ActionResult Edit(int id)
-        {
-            var nhanvien = _db.NhanViens.Find(id);
-            if (nhanvien == null) return HttpNotFound();
-
-            PrepareViewBag(nhanvien.MaChucVu);
-            return View(nhanvien);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(NhanVien model, HttpPostedFileBase file)
-        {
-            var existing = _db.NhanViens.Find(model.Id);
-            if (existing == null) return HttpNotFound();
-
-            return _crudTemplate.ExecuteUpdate(
-                entity: model,
-                existing: existing,
-                file: file,
-                updateAction: e =>
-                {
-                    e.FullName = model.FullName;
-                    e.Email = model.Email;
-                    e.Address = model.Address;
-                    e.NgaySinh = model.NgaySinh ?? e.NgaySinh;
-                    e.Password = model.Password;
-                    e.MaChucVu = model.MaChucVu;
-                    e.Sex = model.Sex;
-                    e.Sdt = model.Sdt;
-                },
-                successResult: () => RedirectToAction("Index"),
-                errorResult: () =>
-                {
-                    PrepareViewBag(model.MaChucVu);
-                    return View(model);
-                }
-            );
-        }
-
-        public ActionResult Delete(int? id)
-        {
-            if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-
-            var nhanvien = _db.NhanViens.Find(id);
-            if (nhanvien == null) return HttpNotFound();
-
-            return View(nhanvien);
-        }
-
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
+        // Phương thức template cho thao tác Create
+        public ActionResult ExecuteCreate(
+            T entity,
+            HttpPostedFileBase file,
+            Action<T> beforeSave = null,
+            Func<ActionResult> successResult = null,
+            Func<ActionResult> errorResult = null)
         {
             try
             {
-                var nhanvien = _db.NhanViens.Find(id);
-                if (nhanvien == null) return HttpNotFound();
-
-                _db.NhanViens.Remove(nhanvien);
-                _db.SaveChanges();
-                return RedirectToAction("Index");
+                if (ModelState.IsValid)
+                {
+                    ProcessFileUpload(entity, file);
+                    beforeSave?.Invoke(entity);
+                    
+                    _db.Set<T>().Add(entity);
+                    _db.SaveChanges();
+                    
+                    return successResult != null ? successResult() : new RedirectResult("Index");
+                }
             }
             catch (Exception ex)
             {
-                _crudTemplate.LogError(ex);
-                return View("Delete", _db.NhanViens.Find(id));
+                LogError(ex);
             }
+            return errorResult != null ? errorResult() : new ViewResult();
         }
 
-        public ActionResult Detail(int? id)
+        // Phương thức template cho thao tác Update
+        public ActionResult ExecuteUpdate(
+            T model,
+            T existing,
+            HttpPostedFileBase file,
+            Action<T> updateAction,
+            Func<ActionResult> successResult = null,
+            Func<ActionResult> errorResult = null)
         {
-            if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-
-            var nhanvien = _db.NhanViens.Find(id);
-            if (nhanvien == null) return HttpNotFound();
-
-            return View(nhanvien);
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    ProcessFileUpload(model, file);
+                    updateAction(existing);
+                    
+                    _db.Entry(existing).State = System.Data.Entity.EntityState.Modified;
+                    _db.SaveChanges();
+                    
+                    return successResult != null ? successResult() : new RedirectResult("Index");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogError(ex);
+            }
+            return errorResult != null ? errorResult() : new ViewResult();
         }
 
-        private void PrepareViewBag(int? maChucVu = null)
+        protected abstract void ProcessFileUpload(T entity, HttpPostedFileBase file);
+        
+        protected virtual void LogError(Exception ex)
         {
-            ViewBag.MaChucVu = new SelectList(_db.ChucVus, "MaChucVu", "ChucVu1", maChucVu);
+            // Có thể thêm logging vào file/DB ở đây
+            System.Diagnostics.Debug.WriteLine($"ERROR: {ex.Message}");
         }
     }
 }
