@@ -2,7 +2,7 @@ using Nike.Models;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Nike.Areas.Admin.Services
+namespace  Nike.DesignPatterm.DecoraterPatterm
 {
     public class OrderService : IOrderService
     {

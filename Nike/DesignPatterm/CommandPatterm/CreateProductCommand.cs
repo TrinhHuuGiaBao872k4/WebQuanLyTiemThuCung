@@ -1,7 +1,7 @@
 using Nike.Models;
 using System;
 
-namespace Nike.Commands
+namespace Nike.DecoraterPatterm.CommandPatterm
 {
     public class CreateProductCommand : ICommand
     {

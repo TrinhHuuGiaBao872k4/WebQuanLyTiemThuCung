@@ -1,3 +1,8 @@
+using Nike.Models;
+using System;
+using System.Linq;
+
+namespace Nike.DecoraterPatterm.RepositoryPattern
 public interface IRepository<T> where T : class
 {
     IEnumerable<T> GetAll();

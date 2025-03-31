@@ -1,9 +1,9 @@
-using Nike.Areas.Admin.Services;
+using Nike.Areas.Admin.Controllers;
 using Nike.Models;
 using System;
 using System.Collections.Generic;
 
-namespace Nike.Areas.Admin.Decorators
+namespace  Nike.DesignPatterm.DecoraterPatterm
 {
     public class OrderServiceLoggingDecorator : IOrderService
     {

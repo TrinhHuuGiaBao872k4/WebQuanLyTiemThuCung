@@ -1,7 +1,7 @@
 using System;
 using System.Web;
 
-namespace Nike.Areas.Admin.Services
+namespace Nike.DesignPatterm.DecoraterPatterm
 {
     public class FileLogger : ILogger
     {

@@ -1,3 +1,7 @@
+using Nike.Models;
+using System;
+using System.Linq;
+namespace Nike.DecoraterPatterm.RepositoryPattern
 public class CatalogRepository : IRepository<Catalog>
 {
     private QuanLySanPhamEntities _db;
