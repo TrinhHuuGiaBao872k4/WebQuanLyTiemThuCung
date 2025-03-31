@@ -1,179 +1,130 @@
-﻿using Nike.Models;
+﻿using Nike.DesignPatterm.CommandPatterm;
+using Nike.Models;
+using PagedList;
 using System;
-using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
-using PagedList;
-using System.IO;
-using System.Net;
-using System.Data.Entity;
 
 namespace Nike.Areas.Admin.Controllers
 {
     public class ProductController : Controller
     {
-        // GET: Admin/Product
-        private QuanLySanPhamEntities _db = new QuanLySanPhamEntities();
-        // GET: Product
-  
+        private readonly QuanLySanPhamEntities _db = new QuanLySanPhamEntities();
 
         public ActionResult Index(string sort, int? page, string searchString)
         {
             const int pageSize = 10;
             int pageNumber = page ?? 1;
 
-            var products = _db.Products.ToList();
+            var products = _db.Products.AsQueryable();
 
-            // tìm kiếm sản phẩm 
-            if (!String.IsNullOrEmpty(searchString))
+            if (!string.IsNullOrEmpty(searchString))
             {
                 searchString = searchString.ToLower();
-                ViewBag.searchStr = searchString;
-                products = products.Where(p => p.ProductName.ToLower().Contains(searchString) ||
-                                                p.Catalog.CatalogName.ToLower().Contains(searchString))
-                                                .ToList();
+                products = products.Where(p =>
+                    p.ProductName.ToLower().Contains(searchString) ||
+                    p.Catalog.CatalogName.ToLower().Contains(searchString));
             }
-            // sắp xếp sản phẩm
-            else
+            else if (!string.IsNullOrEmpty(sort))
             {
-                ViewBag.Sort = sort;
                 switch (sort)
                 {
                     case "pre-sold":
-                        products = products.Where(p => p.SoLuong < 50 && p.SoLuong >0 ).ToList();
+                        products = products.Where(p => p.SoLuong < 50 && p.SoLuong > 0);
                         break;
                     case "sold":
-                        products = products.Where(p => p.SoLuong == 0).ToList();
+                        products = products.Where(p => p.SoLuong == 0);
                         break;
                     case "now":
-                        products = products.OrderByDescending(p => p.NgayNhapHang).ToList();
-                        break;
-                    default:
-                        products = products.ToList();
+                        products = products.OrderByDescending(p => p.NgayNhapHang);
                         break;
                 }
             }
 
-
+            ViewBag.Sort = sort;
+            ViewBag.searchStr = searchString;
             ViewBag.totalPage = Math.Ceiling((double)products.Count() / pageSize);
-            ViewBag.products = products.ToPagedList(pageNumber, pageSize);
 
-            return View(ViewBag.products);
+            return View(products.ToPagedList(pageNumber, pageSize));
         }
 
-        // Tạo sản phẩm mới
         public ActionResult Create()
         {
             ViewBag.CatalogId = new SelectList(_db.Catalogs, "ID", "CatalogName");
             return View();
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(HttpPostedFileBase file, [Bind(Include = "CatalogId,ProductName,ProductCode,UnitPrice,SoLuong,ProductSold,ProductSale,PriceOld")] Product model)
+        public ActionResult Create(HttpPostedFileBase file, Product model)
         {
-
             if (ModelState.IsValid)
             {
-                String anh = "/Hinh/Product/hinhphone.jpg";
-                if (file != null)
+                model.Picture = HandleFileUpload(file, "/Hinh/Product/hinhphone.jpg");
+
+                // Sử dụng Command Pattern
+                var command = new CreateProductCommand(model, p =>
                 {
-                    string pic = System.IO.Path.GetFileName(file.FileName);
-                    String path = System.IO.Path.Combine(
-                                           Server.MapPath("~/Hinh"), pic);
-                    file.SaveAs(path);
-                    anh = pic;
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        file.InputStream.CopyTo(ms);
-                        byte[] array = ms.GetBuffer();
-                    }
-                }
-                model.NgayNhapHang = DateTime.Now;
-                model.Picture = anh;
-                Random prCode = new Random();
-                model.ProductCode = String.Concat("PR", prCode.Next(5000, 7000).ToString());
-                model.ProductSold = 0;
-                model.UnitPrice = model.ProductSale != null
-                    ? (model.UnitPrice = model.PriceOld - (model.PriceOld * int.Parse(model.ProductSale)) / 100)
-                    :  model.UnitPrice = model.PriceOld;
-                _db.Products.Add(model);
-                _db.SaveChanges();
+                    _db.Products.Add(p);
+                    _db.SaveChanges();
+                });
+
+                command.Execute();
+
                 return RedirectToAction("Index");
             }
+
             ViewBag.CatalogId = new SelectList(_db.Catalogs, "ID", "CatalogName", model.CatalogId);
             return View(model);
         }
-        // Chức năng sửa thông tin sản phẩm 
-        public ActionResult Edit(int Id)
+
+        public ActionResult Edit(int id)
         {
+            var product = _db.Products.Find(id);
+            if (product == null) return HttpNotFound();
 
-
-            if (Id.ToString() == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Product product = _db.Products.Find(Id);
-            if (product == null)
-            {
-                return HttpNotFound();
-            }
             ViewBag.CatalogId = new SelectList(_db.Catalogs, "ID", "CatalogName", product.CatalogId);
             return View(product);
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "Id,CatalogId,Picture,ProductName,ProductCode,PriceOld,UnitPrice,ProductSold,ProductSale,SoLuong")] Product product, HttpPostedFileBase file)
+        public ActionResult Edit(Product model, HttpPostedFileBase file)
         {
-            Product pr = _db.Products.Find(product.Id);
             if (ModelState.IsValid)
             {
-                String anh = pr.Picture;
-                if (file != null)
-                {
-                    string pic = System.IO.Path.GetFileName(file.FileName);
-                    String path = System.IO.Path.Combine(
-                                           Server.MapPath("~/Hinh/"), pic);
-                    file.SaveAs(path);
-                    anh = pic;
-                    using (MemoryStream ms = new MemoryStream())
+                var existingProduct = _db.Products.Find(model.Id);
+                if (existingProduct == null) return HttpNotFound();
+
+                existingProduct.Picture = HandleFileUpload(file, existingProduct.Picture);
+
+                // Sử dụng Command Pattern
+                var command = new UpdateProductCommand(
+                    existingProduct,
+                    model,
+                    p =>
                     {
-                        file.InputStream.CopyTo(ms);
-                        byte[] array = ms.GetBuffer();
+                        _db.Entry(p).State = EntityState.Modified;
+                        _db.SaveChanges();
                     }
-                }
-                pr.Picture = anh;
-                pr.CatalogId = product.CatalogId;
-                pr.ProductName = product.ProductName;
-                pr.PriceOld = product.PriceOld;
-                pr.UnitPrice = (pr.ProductSale != null) ? (pr.UnitPrice = (pr.PriceOld - (pr.PriceOld * int.Parse(pr.ProductSale)) / 100)) : (pr.UnitPrice = pr.PriceOld);
-                pr.ProductCode = product.ProductCode;
-                pr.ProductSold = product.ProductSold;
-                pr.ProductSale = product.ProductSale;
-                pr.SoLuong = 500 - pr.ProductSold;
-                pr.NgayNhapHang = DateTime.Now;
-                _db.Entry(pr).State = EntityState.Modified;
-                _db.SaveChanges();
+                );
+
+                command.Execute();
+
                 return RedirectToAction("Index");
             }
-            ViewBag.CatalogId = new SelectList(_db.Catalogs, "ID", "CatalogName", pr.CatalogId);
-            return View(product);
+
+            ViewBag.CatalogId = new SelectList(_db.Catalogs, "ID", "CatalogName", model.CatalogId);
+            return View(model);
         }
 
-        // Hàm xóa sản phẩm 
         [HttpGet]
         public ActionResult Delete(int id)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-
-            var product = _db.Products.Where(p => p.Id == id).FirstOrDefault();
-            if (product == null)
-            {
-                return HttpNotFound();
-            }
+            var product = _db.Products.Find(id);
+            if (product == null) return HttpNotFound();
 
             return View(product);
         }
@@ -181,18 +132,37 @@ namespace Nike.Areas.Admin.Controllers
         [HttpPost, ActionName("Delete")]
         public ActionResult DeleteConfirmed(int id)
         {
+            var product = _db.Products.Find(id);
+            if (product == null) return HttpNotFound();
+
+            // Sử dụng Command Pattern
+            var command = new DeleteProductCommand(product, p =>
+            {
+                _db.Products.Remove(p);
+                _db.SaveChanges();
+            });
+
             try
             {
-                var product = _db.Products.Where(p => p.Id == id).FirstOrDefault();
-                _db.Products.Remove(product);
-                _db.SaveChanges();
+                command.Execute();
                 return RedirectToAction("Index");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return Content("Không xóa được do có liên quan đến bản khác!");
             }
         }
 
+        private string HandleFileUpload(HttpPostedFileBase file, string defaultPath)
+        {
+            if (file != null && file.ContentLength > 0)
+            {
+                string fileName = System.IO.Path.GetFileName(file.FileName);
+                string path = System.IO.Path.Combine(Server.MapPath("~/Hinh"), fileName);
+                file.SaveAs(path);
+                return fileName;
+            }
+            return defaultPath;
+        }
     }
 }

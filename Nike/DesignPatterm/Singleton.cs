@@ -1,7 +1,7 @@
 ﻿using Nike.Models; // Đảm bảo namespace phù hợp với dự án của bạn
 using System;
 
-namespace Nike.DesignPatterns
+namespace Nike.DesignPattern
 {
     public sealed class DbContextSingleton
     {
