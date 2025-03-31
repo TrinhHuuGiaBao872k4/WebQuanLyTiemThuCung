@@ -1,82 +1,36 @@
 ﻿using Nike.Models;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Net;
-using System.Web;
 using System.Web.Mvc;
+using Nike.DesignPattern.FacadePattern;
 
 namespace Nike.Areas.Admin.Controllers
 {
     public class OrderController : Controller
     {
-        private QuanLySanPhamEntities _db = new QuanLySanPhamEntities();
+        private readonly QuanLySanPhamEntities _db = new QuanLySanPhamEntities();
+        private readonly OrderFacade _orderFacade;
+
+        public OrderController()
+        {
+            _orderFacade = new OrderFacade(_db);
+        }
+
         // GET: Admin/Order
-        public ActionResult Index(string searchStr,string sort, int? page)
+        public ActionResult Index(string searchStr, string sort, int? page)
         {
             const int pageSize = 10;
             int pageNumber = page ?? 1;
-            var orders = _db.Orders.ToList();
-            // Tìm kiếm đơn hàng = Sđt 
-            if (!String.IsNullOrEmpty(searchStr))
-            {
-                searchStr = searchStr.ToLower();
-                ViewBag.searchStr = searchStr;
-                orders = orders.Where(p => p.KhachHang.Sdt.ToString().ToLower().Contains(searchStr)).ToList();
-                ViewBag.orderList = orders;
-            }
-            else
-            {
-                Sort(sort);
-            }
-            
-            return View();
 
-        }
-
-
-        public void Sort(string sort)
-        {
+            var orders = _orderFacade.GetOrders(searchStr, sort);
+            ViewBag.orderList = orders;
+            ViewBag.searchStr = searchStr;
             ViewBag.Sort = sort;
-            var orderList = (from s in _db.Orders select s).ToList();
-            foreach (var order in orderList)
-            {
-                if (order.NgayGiao < DateTime.Now && order.Status == "Đang giao hàng")
-                {
-                    Order editOrder = _db.Orders.Find(order.ID);
-                    editOrder.Status = "Hoàn thành";
-                    editOrder.Payment = true;
-                    _db.Entry(editOrder).State = EntityState.Modified;
-                    _db.SaveChanges();
-                }
-            }
-            if (String.IsNullOrEmpty(sort))
-            {
-                ViewBag.orderList = orderList.OrderBy(s => s.NgayDat);
-            }
-            else
-            {
-                switch (sort)
-                {
-                    case "Wait":
-                        ViewBag.orderList = orderList.Where(s => s.Status == "Chưa giao hàng");
-                        break;
-                    case "Deli":
-                        ViewBag.orderList = orderList.Where(s => s.Status == "Đang giao hàng");
-                        break;
-                    case "Done":
-                        ViewBag.orderList = orderList.Where(s => s.Status == "Hoàn thành");
-                        break;
-                    case "Cancel":
-                        ViewBag.orderList = orderList.Where(s => s.Status == "Đã hủy");
-                        break;
-                    default:
-                        ViewBag.orderList = orderList.Where(s => s.KhachHang.Sdt.ToString().Contains(sort));
-                        break;
-                }
-            }
+
+            return View();
         }
+
         public ActionResult Detail(int? id)
         {
             if (id == null)
@@ -84,7 +38,7 @@ namespace Nike.Areas.Admin.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            Order order = _db.Orders.Find(id);
+            var order = _orderFacade.GetOrderDetail(id.Value);
             if (order == null)
             {
                 return HttpNotFound();
@@ -93,7 +47,6 @@ namespace Nike.Areas.Admin.Controllers
             return View(order);
         }
 
-
         public ActionResult Edit(int Id)
         {
             if (Id <= 0)
@@ -101,7 +54,7 @@ namespace Nike.Areas.Admin.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            Order order = _db.Orders.Find(Id);
+            var order = _orderFacade.GetOrderForEdit(Id);
             if (order == null)
             {
                 return HttpNotFound();
@@ -115,59 +68,55 @@ namespace Nike.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "ID")] Order model)
         {
-            Order order = _db.Orders.Find(model.ID);
-
-            if (order == null)
+            try
             {
-                return HttpNotFound();
+                _orderFacade.ProcessOrder(model.ID);
+                return RedirectToAction("Index");
             }
-
-            order.Status = "Đang giao hàng";
-            order.NgayGiao = DateTime.Now.AddDays(3);
-
-            var orderDetails = _db.Order_Detail.Where(item => item.ID_Order == order.ID).ToList();
-
-            foreach (var detail in orderDetails)
+            catch (Exception ex)
             {
-                Product product = _db.Products.Find(detail.ID_Product);
-                product.SoLuong -= 1;
-                product.ProductSold += 1;
-                _db.Entry(product).State = EntityState.Modified;
+                ModelState.AddModelError("", ex.Message);
+                return View(model);
             }
-
-            _db.Entry(order).State = EntityState.Modified;
-            _db.SaveChanges();
-
-            return RedirectToAction("Index");
         }
         
         public ActionResult XoaDon(int Id) 
         {
-            if (Id == null)
+            if (Id <= 0)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            var order = _db.Orders.Where(r => r.ID == Id).FirstOrDefault();
+            
+            var order = _orderFacade.GetOrderForDelete(Id);
             if (order == null)
             {
                 return HttpNotFound();
             }
+            
             return View(order);
         }
+
         [HttpPost, ActionName("XoaDon")]
         public ActionResult XacNhanXoaDon(int Id)
         {
             try
             {
-                var donHang = _db.Orders.Where(r => r.ID == Id).FirstOrDefault();
-                _db.Orders.Remove(donHang);
-                _db.SaveChanges();
+                _orderFacade.CancelOrder(Id);
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-                return Content("Không xóa được do có liên quan đến bản khác!");
+                return Content($"Không xóa được: {ex.Message}");
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _db.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }

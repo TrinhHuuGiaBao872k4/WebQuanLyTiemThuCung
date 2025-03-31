@@ -1,4 +1,4 @@
-namespace Nike.Areas.Admin.Services
+namespace Nike.DesignPatterm.DecoraterPatterm
 {
     public interface ILogger
     {

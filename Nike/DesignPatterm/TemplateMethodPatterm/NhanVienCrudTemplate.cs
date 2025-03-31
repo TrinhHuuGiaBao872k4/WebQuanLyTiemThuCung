@@ -3,7 +3,7 @@ using System.IO;
 using System.Web;
 using Nike.Models;
 
-namespace Nike.Areas.Admin.Patterns.Templates
+namespace Nike.DesignPatterm.TemplateMethodPatterm
 {
     public class NhanVienCrudTemplate : CrudTemplate<NhanVien>
     {
@@ -16,7 +16,7 @@ namespace Nike.Areas.Admin.Patterns.Templates
                 string fileName = Path.GetFileName(file.FileName);
                 string uploadPath = HttpContext.Current.Server.MapPath("~/Hinh/NhanVien");
                 Directory.CreateDirectory(uploadPath); // Tạo thư mục nếu chưa tồn tại
-                
+
                 string fullPath = Path.Combine(uploadPath, fileName);
                 file.SaveAs(fullPath);
                 entity.Picture = fileName;
