@@ -1,5 +1,4 @@
-// File: Areas/Admin/Patterns/Templates/NhanVienCrudTemplate.cs
-using System;
+// File: DesignPattern/TemplateMethodPattern/NhanVienCrudTemplate.cs
 using System.IO;
 using System.Web;
 using Nike.Models;
@@ -16,7 +15,7 @@ namespace Nike.DesignPattern.TemplateMethodPattern
             {
                 string fileName = Path.GetFileName(file.FileName);
                 string uploadPath = HttpContext.Current.Server.MapPath("~/Hinh/NhanVien");
-                Directory.CreateDirectory(uploadPath); // Tạo thư mục nếu chưa tồn tại
+                Directory.CreateDirectory(uploadPath);
 
                 string fullPath = Path.Combine(uploadPath, fileName);
                 file.SaveAs(fullPath);
@@ -31,7 +30,7 @@ namespace Nike.DesignPattern.TemplateMethodPattern
         protected override void LogError(Exception ex)
         {
             base.LogError(ex);
-            // Có thể thêm logic logging đặc biệt cho NhanVien
+            // Có thể thêm xử lý đặc biệt cho nhân viên
         }
     }
 }
