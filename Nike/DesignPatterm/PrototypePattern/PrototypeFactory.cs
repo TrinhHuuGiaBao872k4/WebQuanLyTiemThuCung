@@ -1,7 +1,10 @@
-
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
 public static class PrototypeFactory
 {
-    private static readonly Dictionary<string, IClonableModel<KhachHang>> _prototypes = 
+    private static readonly Dictionary<string, IClonableModel<KhachHang>> _prototypes =
         new Dictionary<string, IClonableModel<KhachHang>>();
 
     public static void AddPrototype(string key, KhachHang prototype)

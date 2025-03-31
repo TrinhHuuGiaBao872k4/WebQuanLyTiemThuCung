@@ -90,5 +90,7 @@ namespace Nike.Areas.Admin.Controllers
         {
             return $"{Guid.NewGuid().ToString("N").Substring(0, 8)}_{baseEmail}";
         }
+        // hell
     }
+
 }
